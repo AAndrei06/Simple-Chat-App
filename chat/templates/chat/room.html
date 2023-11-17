@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Room</title>
+	</head>
+	{{ room_name|json_script:"room-name"}}
+	<style>
+		.log{
+		border: 2px solid gray;
+		overflow-y: scroll;
+		padding: 10px;
+		width: 500px;
+		height: 500px;
+		font-size: 20px;
+		display: flex;
+		flex-direction: column;
+		gap:30px;
+		}
+		#send-inp{
+			width: 450px;
+			font-size: 20px;
+		}
+		#send-btn{
+			font-size: 20px;
+			cursor: pointer;
+		}
+	</style>
+	<body>
+		<div class = "log">
+			
+		</div>
+		<br>
+		<input type="text" id = "send-inp">
+		<button id = "send-btn">Send</button>
+	</body>
+	<script>
+		const roomName = JSON.parse(document.getElementById("room-name").textContent);
+		const url = new URL(document.location);
+		let name = url.searchParams.get("nume");
+		const chatSocket = new WebSocket('ws://'+window.location.host+'/ws/chat/'+roomName+'/');
+
+		chatSocket.onmessage = function(e){
+			let data = JSON.parse(e.data);
+			document.querySelector(".log").innerHTML += `${data.message}<br>`;
+		}
+
+		chatSocket.onclose = function(e){
+			console.error("Closed");
+		}
+
+		document.getElementById("send-btn").addEventListener("click",() => {
+			let msg = document.getElementById("send-inp");
+			let message = msg.value;
+
+			chatSocket.send(JSON.stringify({"message":message}));
+			msg.value = "";
+		})
+
+	</script>
+</html>
